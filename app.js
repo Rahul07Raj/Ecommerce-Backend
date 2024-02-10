@@ -1,8 +1,9 @@
+require("dotenv").config();
 const express = require("express");
-const port = 4000;
-
 const app = express();
 
-app.listen(port,()=>{
-    console.log(`Server is running on ${port}`)
-})
+const User = require("./src/routes/user")
+
+app.use("api/v1/user", User);
+
+module.exports = app;
