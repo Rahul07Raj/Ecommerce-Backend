@@ -130,14 +130,14 @@ exports.getAllProducts = async(req,res)=>{
         if(category){
             filters.category=category
         }
-        const productsPromise = Product.find(baseQuery)
+        const productsPromise = Product.find(filters)
         .sort(sort && { price: sort === "asc" ? 1 : -1 })
         .limit(limit)
         .skip(skip);
   
       const [products, filteredOnlyProduct] = await Promise.all([
         productsPromise,
-        Product.find(baseQuery),
+        Product.find(filters),
       ]);
       const totalPage = Math.ceil(filteredOnlyProduct.length / limit);
         // const products = await Product.find({filters}).sort(sort&&{price:sort==="asc"?1:-1}).limit(limit).skip(skip);

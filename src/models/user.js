@@ -4,17 +4,17 @@ const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Please enter Name"],
+      required:true,
     },
     email: {
       type: String,
-      unique: [true, "Email already Exist"],
-      required: [true, "Please enter Name"],
+      unique: true,
+      required:true,
       validate:validator.default.isEmail,
     },
     photo: {
       type: String,
-      required: [true, "Please add Photo"],
+      required:true,
     },
     role: {
       type: String,
@@ -24,13 +24,12 @@ const userSchema = new mongoose.Schema(
     gender: {
       type: String,
       enum: ["male", "female"],
-      required: [true, "Please enter Gender"],
+      required:true,
     },
   },
   {
     timestamps: true,
   }
 );
-
 const User = mongoose.model("User", userSchema);
 module.exports = User;
