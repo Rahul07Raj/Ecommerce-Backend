@@ -130,8 +130,11 @@ exports.getAllProducts = async(req,res)=>{
         if(category){
             filters.category=category
         }
+        const sortCriteria = sort === "asc" ? 1 : -1;
+        const sortQuery = sort ? { price: sortCriteria } : {}; // Apply default sorting if sort parameter is not provided
+
         const productsPromise = Product.find(filters)
-        .sort(sort && { price: sort === "asc" ? 1 : -1 })
+        .sort(sortQuery)
         .limit(limit)
         .skip(skip);
   

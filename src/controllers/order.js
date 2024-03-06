@@ -28,9 +28,71 @@ exports.newOrder = async(req,res)=>{
 exports.myOrders = async(req,res)=>{
     try{
        const {id:user} = req.query;
-       const orders = await Order.find({user});
+       const orders = await Order.find({user}).populate("user","name");
+       if(!orders){
+        res.status(404).json({success:false,message:"orders not found"});
+      }
        res.status(200).json({success:true,orders});
     }catch(err){
         res.status(500).json({success:false,message:err.message});
     }
-}
+};
+
+exports.allOrders = async(req,res)=>{
+    try{
+      const orders = await Order.find({}).populate("user","name");
+      if(!orders){
+        res.status(404).json({success:false,message:"orders not found"});
+      }
+      res.status(200).json({success:true,orders});
+    }catch(err){
+        res.status(500).json({success:false,message:err.message});
+    }
+};
+
+exports.getOrderById = async(req,res)=>{
+    try{
+     const orderId = req.params.id;
+     const order = await Order.findById(orderId);
+     if(!order){
+        res.status(404).json({success:false,message:"order not found"});
+     }
+     res.status(200).json({success:true,order:order});
+    }catch(err){
+        res.status(500).json({success:false,message:err.message});
+    }
+};
+
+exports.deleteOrderById = async(req,res)=>{
+    try{
+      const orderId = req.params.id;
+      const  order = await Order.findByIdAndDelete(orderId);
+      if(!order){
+        res.status(404).json({success:false,message:"orders not found"});
+      }
+      res.status(200).json({success:true,message:"Order deleted successfully"});
+    }catch(err){
+        res.status(500).json({success:false,message:err.message}); 
+    }
+};
+
+exports.processOrder = async(req,res)=>{
+    try{
+       const orderID = req.params.id;
+       const order = await Order.findById(orderID);
+       if(!order){
+        res.status(404).json({success:true,message:"order not found"});
+       }
+       if(order.status=="Processing"){
+        order.status = "Shipped";
+       }else if(order.status=="Shipped"){
+        order.status = "Delivered";
+       }else{
+        order.status = "Delivered";
+       }
+       await order.save();
+       res.status(200).json({success:true,message:"Order Placed Successfully"});
+    }catch(err){
+        res.status(500).json({success:false,message:err.message}); 
+    }
+};
