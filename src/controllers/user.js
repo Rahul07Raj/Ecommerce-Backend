@@ -1,10 +1,46 @@
 const User = require("../models/user");
+const bcrypt = require("bcryptjs");
+
+exports.loginUser = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: !email ? "email is required" : "password is required",
+      });
+    }
+    const user = await User.findOne({ email }).select("+password");
+    if (!user) {
+      return res.status(404).json({
+        error: "Not Found",
+        message: "User not found.",
+      });
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ error: "Unauthorized", message: "Invalid email or password" });
+    } else {
+      let token = await user.generateAuthToken();
+      res.status(200).json({
+        success: true,
+        message: "login successfull",
+        user,
+        token,
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
 
 exports.addUser = async (req, res, next) => {
   try {
-    const { name, email, photo, gender } = req.body;
+    const { name, email, mobile, password, gender } = req.body;
 
-    if (!name || !email || !photo || !gender) {
+    if (!name || !email || !password || !mobile || !gender) {
       return res
         .status(400)
         .json({ success: false, message: "Missing required fields" });
@@ -16,14 +52,17 @@ exports.addUser = async (req, res, next) => {
     const user = new User({
       name,
       email,
-      photo,
+      mobile,
+      password,
       gender,
     });
-    const newUser = await User.create(user);
+    const newUser = await user.save();
+    let token = await newUser.generateAuthToken();
     res.status(201).json({
       success: true,
       message: `User ${newUser.name} added successfully`,
       user: newUser,
+      token,
     });
   } catch (err) {
     console.error(err);
@@ -57,10 +96,14 @@ exports.deleteUserById = async (req, res) => {
   try {
     const _id = req.params.id;
     const updatedUser = await User.findByIdAndDelete({ _id });
-    if(!updatedUser){
-      return res.status(400).json({success:false,message:"user not found"});
+    if (!updatedUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "user not found" });
     }
-    res.status(200).json({ success: true, message: "User Deleted successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "User Deleted successfully" });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
