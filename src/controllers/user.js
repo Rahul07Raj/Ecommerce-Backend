@@ -36,29 +36,28 @@ exports.loginUser = async (req, res, next) => {
   }
 };
 
-exports.addUser = async (req, res, next) => {
+exports.registerUser = async (req, res, next) => {
   try {
-    const { name, email, mobile, password, gender } = req.body;
+    const { name, email, mobile, password } = req.body;
 
-    if (!name || !email || !password || !mobile || !gender) {
+    if (!name || !email || !password || !mobile) {
       return res
         .status(400)
         .json({ success: false, message: "Missing required fields" });
     }
     const userExists = await User.findOne({ email: email });
     if (userExists) {
-      return res.status(422).json({ Error: "User already exist" });
+      return res.status(422).json({ message: "User already exist" });
     }
     const user = new User({
       name,
       email,
       mobile,
       password,
-      gender,
     });
     const newUser = await user.save();
     let token = await newUser.generateAuthToken();
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       message: `User ${newUser.name} added successfully`,
       user: newUser,
